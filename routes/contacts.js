@@ -33,12 +33,14 @@ router.post('/add', function (req, res, next) {
 
 /* GET a contact */
 router.get('/:uuid', function (req, res, next) {
-    const contact = contactsRepo.queryById(req.params.uuid);
-    if (contact) {
-        res.render('contact', {title: 'Your Contact', contact: contact});
-    } else {
-        res.redirect('/contacts');
-    }
+    const wrapContact = contactsRepo.queryById(req.params.uuid)
+    wrapContact.then(contact => {
+        if (contact) {
+            res.render('contact', {title: 'Your Contact', contact: contact});
+        } else {
+            res.redirect('/contacts');
+        }
+    })
 });
 
 /* GET A contact delete */
