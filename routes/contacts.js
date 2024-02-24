@@ -45,8 +45,9 @@ router.get('/:uuid', function (req, res, next) {
 
 /* GET A contact delete */
 router.get('/:uuid/delete', function (req, res, next) {
-    const contact = contactsRepo.queryById(req.params.uuid);
-    res.render('contact_delete', {title: 'Delete Contact', contact: contact});
+    contactsRepo.queryById(req.params.uuid).then(contact => {
+        res.render('contact_delete', {title: 'Delete Contact', contact: contact});
+    })
 });
 
 /* POST contacts delete */
@@ -57,39 +58,32 @@ router.post('/:uuid/delete', function (req, res, next) {
 
 /* GET contacts edit */
 router.get('/:uuid/edit', function (req, res, next) {
-    const contact = contactsRepo.queryById(req.params.uuid);
-    res.render('contacts_edit', {title: 'Edit contact', contact: contact});
+    const wrapContact = contactsRepo.queryById(req.params.uuid);
+    const unbox = contact => {
+        res.render('contacts_edit', {title: 'Edit contact', contact: contact});
+    };
+    wrapContact.then(unbox)
 });
-
 /* POST contacts edit  */
 router.post('/:uuid/edit', function (req, res, next) {
-    // 1. 校验数据
-    // 2. 如果失败,render 到edit页, 并且携带校验的错误信息
-    const contact = contactsRepo.queryById(req.params.uuid);
-    if (req.body.firstName.trim() === '') {
-        res.render('contacts_edit', {title: 'Edit a Contact', msg: 'firstName can not be empty!', contact: contact});
-    }
-    if (req.body.lastName.trim() === '') {
-        res.render('contacts_edit', {title: 'Edit a Contact', msg: 'lastName can not be empty!', contact: contact});
-    }
-    // 3. 如果成功,调用repository的更新方法
-    contact.firstName = req.body.firstName
-    contact.lastName = req.body.lastName
-    contact.email = req.body.email
-    contact.firstName = req.body.firstName
-    contactsRepo.update(contact);
-    // 4. 最后再重定向到列表页
-    res.redirect('/contacts');
-
-
-    if (req.body.contactText.trim() === '') {
-        const contact = contactsRepo.queryById(req.params.uuid);
-        res.render('contacts_edit', {title: 'Edit contact', msg: 'Contact text can not be empty!', contact: contact});
-    } else {
-        const updatedContact = {id: req.params.uuid, text: req.body.contactText.trim()};
-        contactsRepo.update(updatedContact);
+    contactsRepo.queryById(req.params.uuid).then(contact => {
+        // 1. 校验数据
+        // 2. 如果失败,render 到edit页, 并且携带校验的错误信息
+        if (req.body.firstName.trim() === '') {
+            res.render('contacts_edit', {title: 'Edit a Contact', msg: 'firstName can not be empty!', contact: contact});
+        }
+        if (req.body.lastName.trim() === '') {
+            res.render('contacts_edit', {title: 'Edit a Contact', msg: 'lastName can not be empty!', contact: contact});
+        }
+        // 3. 如果成功,调用repository的更新方法
+        contact.firstName = req.body.firstName
+        contact.lastName = req.body.lastName
+        contact.email = req.body.email
+        contact.firstName = req.body.firstName
+        contactsRepo.update(contact);
+        // 4. 最后再重定向到列表页
         res.redirect('/contacts');
-    }
+    })
 });
 
 module.exports = router;
